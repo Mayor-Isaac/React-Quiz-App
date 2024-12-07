@@ -19,6 +19,7 @@ const initialState = {
   index: 0,
   answer: null,
   points: 0,
+  highScore: 0,
 };
 function reducer(state, action) {
   switch (action.type) {
@@ -41,6 +42,8 @@ function reducer(state, action) {
       };
     case "nextQuestion":
       return { ...state, index: state.index + 1, answer: null };
+    case "finish":
+      return { ...state, status: "finished" };
     default:
       throw new Error("Action Unknown");
   }
@@ -86,10 +89,17 @@ export default function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton dispatch={dispatch} answer={answer} />
+            <NextButton
+              dispatch={dispatch}
+              answer={answer}
+              index={index}
+              numQuestions={numQuestions}
+            />
           </>
         )}
-        {status === "finished" && <FinishedScreen />}
+        {status === "finished" && (
+          <FinishedScreen points={points} maxPossiblePoint={maxPossiblePoint} />
+        )}
       </Main>
     </div>
   );
