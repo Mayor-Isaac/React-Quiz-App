@@ -7,9 +7,9 @@ import Loader from "./Components/Loader";
 import Error from "./Components/Error";
 import StartScreen from "./Components/StartScreen";
 import Question from "./Components/Question";
-import NextButton from "./Components/NextButton";
 import Progress from "./Components/Progress";
 import FinishedScreen from "./Components/FinishedScreen";
+import Footer from "./Components/Footer";
 
 const initialState = {
   questions: [],
@@ -43,7 +43,18 @@ function reducer(state, action) {
     case "nextQuestion":
       return { ...state, index: state.index + 1, answer: null };
     case "finish":
-      return { ...state, status: "finished" };
+      return {
+        ...state,
+        status: "finished",
+        highScore:
+          state.points > state.highScore ? state.points : state.highScore,
+      };
+    case "restart":
+      return {
+        ...initialState,
+        question: state.questions,
+        status: "ready",
+      };
     default:
       throw new Error("Action Unknown");
   }
@@ -52,14 +63,16 @@ function reducer(state, action) {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { questions, status, index, answer, points } = state;
+  const { questions, status, index, answer, points, highScore } = state;
+
+  const endPoint = "http://localhost:8000/questions";
   const numQuestions = questions.length;
   const maxPossiblePoint = questions.reduce(
     (prev, cur) => prev + cur.points,
     0
   );
   useEffect(() => {
-    fetch("http://localhost:8000/questions")
+    fetch(endPoint)
       .then((res) => res.json())
       .then((data) => {
         dispatch({ type: "dataReceived", payload: data });
@@ -89,16 +102,21 @@ export default function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton
+            <Footer
               dispatch={dispatch}
-              answer={answer}
               index={index}
               numQuestions={numQuestions}
+              answer={answer}
             />
           </>
         )}
         {status === "finished" && (
-          <FinishedScreen points={points} maxPossiblePoint={maxPossiblePoint} />
+          <FinishedScreen
+            points={points}
+            maxPossiblePoint={maxPossiblePoint}
+            highScore={highScore}
+            dispatch={dispatch}
+          />
         )}
       </Main>
     </div>
